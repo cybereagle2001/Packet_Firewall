@@ -69,7 +69,7 @@ class FirewallApp:
             packet_summaries = self.firewall.get_packet_summaries()
             self.packet_table.delete(*self.packet_table.get_children())
             
-            for summary in reversed(packet_summaries):  # Show new logs at the top
+            for summary in packet_summaries:  # Show new logs at the top
                 parts = summary.split(", ")
                 values = [datetime.now().strftime("%Y-%m-%d %H:%M:%S")] + [part.split(": ")[1] for part in parts]  # Add timestamp
                 self.packet_table.insert("", 0, values=values)  # Insert at the top
