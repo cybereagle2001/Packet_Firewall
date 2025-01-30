@@ -1,6 +1,6 @@
 # Packet_Firewall
 
-##H ow to run
+## How to run
 
 start by cloning the repo
 
