@@ -2,7 +2,7 @@
 
 ## How to run
 
-start by cloning the repo
+start by cloning the repo https://github.com/cybereagle2001/Packet_Firewall.git
 
 > git clone
 
