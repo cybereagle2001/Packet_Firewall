@@ -36,7 +36,7 @@ class FirewallApp:
         self.packet_table = None
         self.policy_table = None
         self.capturing = False
-        self.firewall = Firewall(interface="eth0",log_file="packet_log.txt")
+        self.firewall = Firewall(interface="eth0", log_file="packet_log.txt")
         self.capture_thread = None
         self.show_packets_dashboard()
 
@@ -137,7 +137,7 @@ class FirewallApp:
         policy_table_frame = tk.Frame(self.content_frame, bg="#1E3A8A")
         policy_table_frame.pack(fill=tk.BOTH, expand=True, pady=10)
 
-        columns = ("ID","Protocol", "Action", "Source IP", "Destination IP", "Source Port", "Destination Port")
+        columns = ("ID", "Protocol", "Action", "Source IP", "Destination IP", "Source Port", "Destination Port")
         self.policy_table = ttk.Treeview(policy_table_frame, columns=columns, show="headings", height=10)
         self.policy_table.pack(fill=tk.BOTH, expand=True)
 
@@ -149,7 +149,8 @@ class FirewallApp:
         self.update_policy_table()
 
     def add_policy(self):
-        ID = self.ID + 1
+        self.ID = self.ID + 1
+        ID = self.ID
         protocol = self.protocol_var.get()
         action = self.action_var.get()
         source_ip = self.source_ip_entry.get()
@@ -158,7 +159,7 @@ class FirewallApp:
         dest_port = self.dest_port_entry.get()
 
         if protocol or source_ip or dest_ip or source_port or dest_port:
-            policy = f"{protocol},{action},{source_ip},{dest_ip},{source_port},{dest_port}"
+            policy = f"{ID},{protocol},{action},{source_ip},{dest_ip},{source_port},{dest_port}"
             self.firewall.add_policy(policy)
             messagebox.showinfo("Success", "Policy added successfully!")
             self.update_policy_table()  # Refresh the policy table
@@ -166,13 +167,14 @@ class FirewallApp:
             messagebox.showwarning("Input Error", "Please fill in at least one field.")
 
     def update_policy_table(self):
-        """Update the policy table with the latest policies."""
+        """Update the policy table with the latest policies in reverse order."""
         if self.policy_table:
             self.policy_table.delete(*self.policy_table.get_children())  # Clear existing rows
             for policy in self.firewall.policies:
                 # Split the policy string into its components
                 policy_parts = policy.split(",")
-                self.policy_table.insert("", "end", values=policy_parts)
+                # Insert the policy at the beginning of the table
+                self.policy_table.insert("", "0", values=policy_parts)  # "0" inserts at the top
 
     def clear_content(self):
         for widget in self.content_frame.winfo_children():
