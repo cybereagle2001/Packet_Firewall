@@ -25,6 +25,7 @@ class FirewallApp:
         self.menu_buttons = {
             "Packets Dashboard": self.show_packets_dashboard,
             "Policy Creation": self.show_policy_creation,
+            "Packet Logs": self.show_packet_logs,  # New button for Packet Logs
         }
 
         for text, command in self.menu_buttons.items():
@@ -37,6 +38,7 @@ class FirewallApp:
 
         self.packet_table = None
         self.policy_table = None
+        self.log_table = None  # Table for packet logs
         self.capturing = False
         self.firewall = Firewall(interface="eth0", log_file="packet_log.txt")
         self.capture_thread = None
@@ -196,6 +198,42 @@ class FirewallApp:
                     # Insert the policy at the beginning of the table
                     self.policy_table.insert("", "0", values=policy_parts)  # "0" inserts at the top
 
+    def show_packet_logs(self):
+        """Display the packet logs from packet_log.txt in a table."""
+        self.clear_content()
+
+        # Title Label
+        title_label = tk.Label(self.content_frame, text="Packet Logs", font=("Arial", 16, "bold"), fg="white", bg="#1E3A8A")
+        title_label.pack(pady=10)
+
+        # Table for Packet Logs
+        columns = ("Timestamp", "Protocol", "Source IP", "Destination IP", "Source Port", "Destination Port", "Action")
+        self.log_table = ttk.Treeview(self.content_frame, columns=columns, show="headings", height=15)
+        self.log_table.pack(fill=tk.BOTH, expand=True)
+
+        for col in columns:
+            self.log_table.heading(col, text=col)
+            self.log_table.column(col, width=150)
+
+        # Load and display the logs
+        self.load_packet_logs()
+
+    def load_packet_logs(self):
+        """Load packet logs from packet_log.txt and display them in the table."""
+        if self.log_table:
+            self.log_table.delete(*self.log_table.get_children())  # Clear existing rows
+
+            try:
+                with open("packet_log.txt", "r") as file:
+                    for line in file:
+                        # Parse the log line
+                        log_parts = line.strip().split(", ")
+                        values = [part.split(": ")[1] for part in log_parts]
+                        # Insert the log into the table
+                        self.log_table.insert("", "end", values=values)
+            except FileNotFoundError:
+                messagebox.showwarning("File Not Found", "The packet log file does not exist.")
+
     def clear_content(self):
         for widget in self.content_frame.winfo_children():
             widget.destroy()
@@ -203,6 +241,8 @@ class FirewallApp:
             self.packet_table = None
         if hasattr(self, 'policy_table') and self.policy_table:
             self.policy_table = None
+        if hasattr(self, 'log_table') and self.log_table:
+            self.log_table = None
 
     def update_display(self):
         if self.capturing and self.packet_table:
