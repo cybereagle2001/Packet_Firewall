@@ -3,6 +3,8 @@ from tkinter import ttk, messagebox
 from threading import Thread
 from firewall_perfect import *
 from datetime import datetime
+import json
+import os
 
 class FirewallApp:
     def __init__(self, root):
@@ -10,7 +12,7 @@ class FirewallApp:
         self.root.title("FortiGate-Style Firewall")
         self.root.geometry("1200x600")
         self.root.configure(bg="#1E3A8A")
-        self.ID = 0
+        self.ID = self.load_id_counter()
 
         # Create Main Layout
         self.main_frame = tk.Frame(root, bg="#1E3A8A")
@@ -39,6 +41,22 @@ class FirewallApp:
         self.firewall = Firewall(interface="eth0", log_file="packet_log.txt")
         self.capture_thread = None
         self.show_packets_dashboard()
+
+    def load_id_counter(self):
+        """
+        Load the ID counter from a file. If the file doesn't exist, start from 0.
+        """
+        if os.path.exists("id_counter.json"):
+            with open("id_counter.json", "r") as file:
+                return json.load(file).get("ID", 0)
+        return 0
+
+    def save_id_counter(self):
+        """
+        Save the ID counter to a file.
+        """
+        with open("id_counter.json", "w") as file:
+            json.dump({"ID": self.ID}, file)
 
     def show_packets_dashboard(self):
         self.clear_content()
@@ -151,6 +169,7 @@ class FirewallApp:
     def add_policy(self):
         self.ID = self.ID + 1
         ID = self.ID
+        self.save_id_counter()
         protocol = self.protocol_var.get()
         action = self.action_var.get()
         source_ip = self.source_ip_entry.get()
@@ -173,8 +192,9 @@ class FirewallApp:
             for policy in self.firewall.policies:
                 # Split the policy string into its components
                 policy_parts = policy.split(",")
-                # Insert the policy at the beginning of the table
-                self.policy_table.insert("", "0", values=policy_parts)  # "0" inserts at the top
+                if len(policy_parts) == 7:  # Ensure the policy has exactly 7 parts
+                    # Insert the policy at the beginning of the table
+                    self.policy_table.insert("", "0", values=policy_parts)  # "0" inserts at the top
 
     def clear_content(self):
         for widget in self.content_frame.winfo_children():
@@ -194,6 +214,7 @@ class FirewallApp:
                 self.packet_table.insert("", 0, values=values)
         if self.capturing:
             self.root.after(1000, self.update_display)
+
 
 if __name__ == "__main__":
     root = tk.Tk()
